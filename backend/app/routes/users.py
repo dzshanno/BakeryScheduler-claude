@@ -48,12 +48,6 @@ def get_users():
 
         return jsonify(
             {
-                "currentUser": {
-                    "id": current_user.id,
-                    "username": current_user.username,
-                    "email": current_user.email,
-                    "role": current_user.role,
-                },
                 "users": user_list,
             }
         )

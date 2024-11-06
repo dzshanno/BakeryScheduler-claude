@@ -1,8 +1,23 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { UserCircle, Calendar, Users, Settings, LogOut } from 'lucide-react';
 import * as authService from './api/auth';
-import UserList from './components/users/UserList';
+import UserList from './components/users/UserList'; // Import the UserList component
+
+// Placeholder components
+const Schedule = () => (
+  <div className="p-6">
+    <h2 className="text-2xl font-bold mb-4">Bakery Schedule</h2>
+    <p>Schedule management interface will go here</p>
+  </div>
+);
+
+const SettingsPanel = () => (
+  <div className="p-6">
+    <h2 className="text-2xl font-bold mb-4">Settings</h2>
+    <p>Settings interface will go here</p>
+  </div>
+);
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -10,6 +25,24 @@ function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const fetchCurrentUser = async () => {
+        try {
+          const userData = await authService.getCurrentUser();
+          setCurrentUser(userData);
+          setIsLoggedIn(true);
+        } catch (err) {
+          console.error('Failed to get current user:', err);
+          handleLogout();
+        }
+      };
+      fetchCurrentUser();
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,6 +52,8 @@ function App() {
     try {
       const data = await authService.login(username, password);
       localStorage.setItem('token', data.token);
+      const userData = await authService.getCurrentUser();
+      setCurrentUser(userData);
       setIsLoggedIn(true);
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -30,12 +65,22 @@ function App() {
   const handleLogout = () => {
     authService.logout();
     setIsLoggedIn(false);
+    setCurrentUser(null);
   };
+
+  const NavigationItem = ({ to, icon: Icon, title }) => (
+    <Link
+      to={to}
+      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+    >
+      <Icon className="h-5 w-5 mr-2" />
+      <span>{title}</span>
+    </Link>
+  );
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
         <header className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -43,26 +88,23 @@ function App() {
                 <UserCircle className="h-8 w-8 text-blue-600" />
                 <h1 className="ml-2 text-xl font-bold text-gray-900">Baker Scheduling</h1>
               </div>
-              {!isLoggedIn ? (
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                  disabled={loading}
-                >
-                  Login
-                </button>
-              ) : (
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                </button>
+              {isLoggedIn && (
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    {currentUser?.name || currentUser?.username}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {!isLoggedIn ? (
             <div className="max-w-md mx-auto">
@@ -112,36 +154,24 @@ function App() {
               </div>
             </div>
           ) : (
-            <Routes>
-              <Route path="/users" element={<UserList />} />
-              <Route path="/" element={
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center">
-                      <Calendar className="h-8 w-8 text-blue-600" />
-                      <h2 className="ml-2 text-xl font-bold">Schedule</h2>
-                    </div>
-                    <p className="mt-2 text-gray-600">View and manage bakery shifts</p>
-                  </div>
+            <div className="flex gap-6">
+              <div className="w-64 bg-white rounded-lg shadow-sm p-4">
+                <nav className="space-y-2">
+                  <NavigationItem to="/" icon={Calendar} title="Schedule" />
+                  <NavigationItem to="/staff" icon={Users} title="Staff" />
+                  <NavigationItem to="/settings" icon={Settings} title="Settings" />
+                </nav>
+              </div>
 
-                  <Link to="/users" className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-center">
-                      <Users className="h-8 w-8 text-blue-600" />
-                      <h2 className="ml-2 text-xl font-bold">Staff</h2>
-                    </div>
-                    <p className="mt-2 text-gray-600">Manage staff and availability</p>
-                  </Link>
-
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center">
-                      <Settings className="h-8 w-8 text-blue-600" />
-                      <h2 className="ml-2 text-xl font-bold">Settings</h2>
-                    </div>
-                    <p className="mt-2 text-gray-600">Configure system settings</p>
-                  </div>
-                </div>
-              } />
-            </Routes>
+              <div className="flex-1 bg-white rounded-lg shadow-sm">
+                <Routes>
+                  <Route path="/" element={<Schedule />} />
+                  <Route path="/staff" element={<UserList />} />
+                  <Route path="/settings" element={<SettingsPanel />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </div>
+            </div>
           )}
         </main>
       </div>
