@@ -7,11 +7,8 @@ from app import db
 auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route("/login", methods=["POST", "OPTIONS"])
+@auth_bp.route("/login", methods=["POST"])
 def login():
-    if request.method == "OPTIONS":
-        return make_response("", 204)
-
     data = request.get_json()
 
     if not data or not data.get("username") or not data.get("password"):

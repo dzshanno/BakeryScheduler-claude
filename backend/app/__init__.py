@@ -1,6 +1,6 @@
 # backend/app/__init__.py
 import os
-from flask import Flask, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -16,11 +16,24 @@ def create_app(config_class=Config):
     app = Flask(__name__, static_folder="static")
     app.config.from_object(config_class)
 
+    # Define CORS configuration
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": ["http://localhost:5173"],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True,
+                "expose_headers": ["Content-Range", "X-Content-Range"],
+            }
+        },
+    )
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(app)
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -34,10 +47,5 @@ def create_app(config_class=Config):
 
     app.cli.add_command(create_tables)
     app.cli.add_command(seed_db)
-
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>", methods=["OPTIONS"])
-    def handle_options(path):
-        return "", 204
 
     return app
