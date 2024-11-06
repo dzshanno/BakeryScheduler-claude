@@ -20,11 +20,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(
-        app,
-        supports_credentials=True,
-        resources={r"/*": {"origins": "http://localhost:5173"}},
-    )
+    CORS(app)
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -38,18 +34,6 @@ def create_app(config_class=Config):
 
     app.cli.add_command(create_tables)
     app.cli.add_command(seed_db)
-
-    @app.after_request
-    def after_request(response):
-        response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
-        )
-        response.headers.add("Access-Control-Allow-Credentials", "true")
-        return response
 
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>", methods=["OPTIONS"])

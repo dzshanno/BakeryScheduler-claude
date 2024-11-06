@@ -10,16 +10,10 @@ users_bp = Blueprint("users", __name__)
 
 @users_bp.route("/", methods=["GET", "OPTIONS"])
 @jwt_required()
-@cross_origin(origins="http://localhost:5173", supports_credentials=True)
+# @cross_origin(origins="http://localhost:5173", supports_credentials=True)
 def get_users():
     if request.method == "OPTIONS":
-        response = jsonify({})
-        response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
-        response.headers.add("Access-Control-Allow-Credentials", "true")
+        response = ""
         return response
 
     try:
