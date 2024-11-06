@@ -9,7 +9,8 @@ export const getUsers = async () => {
         console.error('Error fetching users:', {
             message: error.message,
             response: error.response?.data,
-            status: error.response?.status
+            status: error.response?.status,
+            headers: error.response?.headers
         });
         throw error.response?.data?.message || 'Failed to fetch users';
 

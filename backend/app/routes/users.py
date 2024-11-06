@@ -1,14 +1,31 @@
 # backend/app/routes/users.py
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from functools import wraps
 from app.models.user import User
 from app import db
 
 users_bp = Blueprint("users", __name__)
 
 
-@users_bp.route("/", methods=["GET"])
-@jwt_required()
+def jwt_required_except_options(*args, **kwargs):
+    """Wrapper to skip JWT check for OPTIONS requests"""
+
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if request.method == "OPTIONS":
+                return {}
+            return jwt_required(*args, **kwargs)(fn)(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+@users_bp.route("", methods=["GET"])  # No trailing slash
+@users_bp.route("/", methods=["GET", "OPTIONS"])  # with trailing slash
+@jwt_required_except_options()
 def get_users():
 
     try:
