@@ -5,8 +5,9 @@ if (!import.meta.env.VITE_API_URL) {
   console.error('VITE_API_URL is not defined in environment variables');
 }
 
+// Add /api to baseURL
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -18,15 +19,19 @@ const api = axios.create({
 // Add a request interceptor for JWT token
 
 api.interceptors.request.use(
-  (config) => {
+  (request) => {
     // Log the request for debugging
-    console.log('Making request to:', config.url);
+    console.log('Starting Request:', {
+      url: request.url,
+      baseURL: request.baseURL,
+      method: request.method,
+    });
 
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      request.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
+    return request;
   },
   (error) => {
     return Promise.reject(error);
@@ -53,7 +58,7 @@ api.interceptors.response.use(
       console.error('No response received:', error.request);
     } else {
       // Something happened in setting up the request that triggered an Error
-      console.error('Request setup error:', error.message);
+      console.error('Request setup error:', "::" + error.message);
     }
     return Promise.reject(error);
   }

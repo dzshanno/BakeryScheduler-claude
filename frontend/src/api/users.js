@@ -1,11 +1,18 @@
-import axios from 'axios';
+import api from './axios';
 
 export const getUsers = async () => {
     try {
         const response = await api.get('/users');
+        console.log('Users API Response:', response.data);
         return response.data;
     } catch (error) {
+        console.error('Error fetching users:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
         throw error.response?.data?.message || 'Failed to fetch users';
+
     }
 };
 

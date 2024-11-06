@@ -11,11 +11,13 @@ function UserList() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const data = await getUsers('/api/users', { method: 'GET' }); // Ensure correct API endpoint
+                const data = await getUsers();
                 setCurrentUser(data.currentUser);
                 setUsers(data.users);
+                setError(null);
             } catch (err) {
-                setError('Failed to fetch users');
+                console.error('UserList fetch error:', err);
+                setError('Failed to fetch users. Please check your permissions and try again.');
             } finally {
                 setLoading(false);
             }
@@ -25,7 +27,13 @@ function UserList() {
     }, []);
 
     if (loading) return <div className="text-center p-4">Loading...</div>;
-    if (error) return <div className="text-red-600 p-4">{error}</div>;
+    if (error) return (
+        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg">
+            <h3 className="font-semibold">Error Loading Users</h3>
+            <p>{error}</p>
+        </div>
+    );
+
 
     const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
