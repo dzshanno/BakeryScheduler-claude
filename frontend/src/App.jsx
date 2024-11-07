@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { UserCircle, Calendar, Users, Settings, LogOut, PlusCircle } from 'lucide-react';
 import * as authService from './api/auth';
-import UserList from './components/users/UserList'; // Import the UserList component
-import ShiftsForm from './components/shifts/ShiftsForm'; // Import the ShiftsForm component
-import Schedule from './components/schedule/Schedule';
+import { Card, CardContent } from '@/components/ui/card';
 
-// Placeholder components
+// Lazy load components
+const Schedule = React.lazy(() => import('./components/schedule/Schedule'));
+const BakerAvailability = React.lazy(() => import('./components/availability/BakerAvailability'));
+const UserList = React.lazy(() => import('./components/users/UserList'));
 
+// Placeholder component
 const SettingsPanel = () => (
   <div className="p-6">
     <h2 className="text-2xl font-bold mb-4">Settings</h2>
@@ -59,7 +61,7 @@ function App() {
   };
 
   const handleLogout = () => {
-    authService.logout();
+    localStorage.removeItem('token');
     setIsLoggedIn(false);
     setCurrentUser(null);
   };
@@ -103,8 +105,8 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {!isLoggedIn ? (
-            <div className="max-w-md mx-auto">
-              <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-6 space-y-4">
                 <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
                 <p className="text-gray-600">Please log in to manage your bakery schedules.</p>
 
@@ -147,27 +149,33 @@ function App() {
                     {loading ? 'Logging in...' : 'Log In'}
                   </button>
                 </form>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ) : (
             <div className="flex gap-6">
               <div className="w-64 bg-white rounded-lg shadow-sm p-4">
                 <nav className="space-y-2">
                   <NavigationItem to="/" icon={Calendar} title="Schedule" />
-                  <NavigationItem to="/shifts/new" icon={PlusCircle} title="Add Shift" />
+                  <NavigationItem to="/availability" icon={PlusCircle} title="My Availability" />
                   <NavigationItem to="/staff" icon={Users} title="Staff" />
                   <NavigationItem to="/settings" icon={Settings} title="Settings" />
                 </nav>
               </div>
 
-              <div className="flex-1 bg-white rounded-lg shadow-sm">
-                <Routes>
-                  <Route path="/" element={<Schedule />} />
-                  <Route path="/staff" element={<UserList />} />
-                  <Route path="/settings" element={<SettingsPanel />} />
-                  <Route path="/shifts/new" element={<ShiftsForm />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+              <div className="flex-1">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-32">
+                    <div className="text-gray-500">Loading...</div>
+                  </div>
+                }>
+                  <Routes>
+                    <Route path="/" element={<Schedule />} />
+                    <Route path="/availability" element={<BakerAvailability />} />
+                    <Route path="/staff" element={<UserList />} />
+                    <Route path="/settings" element={<SettingsPanel />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
               </div>
             </div>
           )}
