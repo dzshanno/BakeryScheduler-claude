@@ -1,23 +1,36 @@
 # backend/app/__init__.py
 import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from config import Config
+from config import config
+from app.database import db
+from app.routes.shifts import shifts_bp
+from dotenv import load_dotenv
 
-db = SQLAlchemy()
+# Load environment variables
+load_dotenv()
+
 migrate = Migrate()
 jwt = JWTManager()
 
 
-def create_app(config_class=Config):
+def create_app(config_name=None):
     app = Flask(__name__, static_folder="static")
-    app.config.from_object(config_class)
 
     # Disable Flask's automatic slash behavior
     app.url_map.strict_slashes = False
+
+    # If no config_name provided, get it from environment variable
+    if config_name is None:
+        config_name = os.getenv("FLASK_ENV", "development")
+
+    print(f"Using configuration: {config_name}")  # Debug print
+
+    # Get config class from config dictionary
+    config_class = config[config_name]
+    app.config.from_object(config_class)
 
     # Define CORS configuration
     CORS(
@@ -49,6 +62,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
+    app.register_blueprint(shifts_bp, url_prefix="/api/shifts")  # Add this line
 
     # Register CLI commands
     from commands import create_tables, seed_db

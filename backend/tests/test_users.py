@@ -1,7 +1,7 @@
 # backend/tests/test_users.py
 import json
 from app.models.user import User
-from app import db
+from app.database import db
 
 
 def test_get_users(test_client):

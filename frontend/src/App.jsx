@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { UserCircle, Calendar, Users, Settings, LogOut } from 'lucide-react';
+import { UserCircle, Calendar, Users, Settings, LogOut, PlusCircle } from 'lucide-react';
 import * as authService from './api/auth';
 import UserList from './components/users/UserList'; // Import the UserList component
+import ShiftsForm from './components/shifts/ShiftsForm'; // Import the ShiftsForm component
+import Schedule from './components/schedule/Schedule';
 
 // Placeholder components
-const Schedule = () => (
-  <div className="p-6">
-    <h2 className="text-2xl font-bold mb-4">Bakery Schedule</h2>
-    <p>Schedule management interface will go here</p>
-  </div>
-);
 
 const SettingsPanel = () => (
   <div className="p-6">
@@ -158,6 +154,7 @@ function App() {
               <div className="w-64 bg-white rounded-lg shadow-sm p-4">
                 <nav className="space-y-2">
                   <NavigationItem to="/" icon={Calendar} title="Schedule" />
+                  <NavigationItem to="/shifts/new" icon={PlusCircle} title="Add Shift" />
                   <NavigationItem to="/staff" icon={Users} title="Staff" />
                   <NavigationItem to="/settings" icon={Settings} title="Settings" />
                 </nav>
@@ -168,6 +165,7 @@ function App() {
                   <Route path="/" element={<Schedule />} />
                   <Route path="/staff" element={<UserList />} />
                   <Route path="/settings" element={<SettingsPanel />} />
+                  <Route path="/shifts/new" element={<ShiftsForm />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>
